@@ -44,7 +44,7 @@ Enhancement suggestions are welcome! Please provide:
 
 1. **Clone your fork**
    ```bash
-   git clone https://github.com/yourusername/TwoTokensAutomation.git
+   git clone https://github.com/palash-devworks/TwoTokensAutomation.git
    cd TwoTokensAutomation
    ```
 

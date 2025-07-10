@@ -2,7 +2,7 @@
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
-[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey)](https://github.com/yourusername/TwoTokensAutomation)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey)](https://github.com/palash-devworks/TwoTokensAutomation)
 
 A powerful command-line tool for automating event management, file updates, and task scheduling with intelligent cron job integration. Perfect for managing meetups, conferences, and recurring automation tasks.
 
@@ -27,7 +27,7 @@ A powerful command-line tool for automating event management, file updates, and 
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/TwoTokensAutomation.git
+   git clone https://github.com/palash-devworks/TwoTokensAutomation.git
    cd TwoTokensAutomation
    ```
 
@@ -184,7 +184,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ## 🐛 Issues & Support
 
-Found a bug or have a feature request? Please [open an issue](https://github.com/yourusername/TwoTokensAutomation/issues).
+Found a bug or have a feature request? Please [open an issue](https://github.com/palash-devworks/TwoTokensAutomation/issues).
 
 ## 📄 License
 
