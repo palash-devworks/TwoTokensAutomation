@@ -1,0 +1,82 @@
+{
+  "twotokens_file": "TwoTokens.md",
+  "log_file": "twotokens.log",
+  "tasks": [
+    {
+      "name": "daily-update",
+      "command": "./twotokens update",
+      "schedule": "0 9 * * *",
+      "description": "Update TwoTokens.md file daily at 9 AM"
+    },
+    {
+      "name": "weekly-backup",
+      "command": "cp TwoTokens.md TwoTokens.backup.$(date +%Y%m%d).md",
+      "schedule": "0 0 * * 0",
+      "description": "Create weekly backup every Sunday at midnight"
+    },
+    {
+      "name": "TwoTokens Summer Meetup_sponsor_reminder",
+      "command": "./twotokens event notify sponsor \"TwoTokens Summer Meetup\"",
+      "schedule": "0 18 18 7 *",
+      "event_id": 1,
+      "task_type": "pre_event",
+      "description": "Send sponsor reminder 1 week before event",
+      "created": "2025-07-10T10:42:43.542828"
+    },
+    {
+      "name": "TwoTokens Summer Meetup_team_preparation",
+      "command": "./twotokens event notify team \"TwoTokens Summer Meetup\"",
+      "schedule": "0 18 22 7 *",
+      "event_id": 1,
+      "task_type": "pre_event",
+      "description": "Send team preparation notice 3 days before",
+      "created": "2025-07-10T10:42:43.542833"
+    },
+    {
+      "name": "TwoTokens Summer Meetup_final_reminder",
+      "command": "./twotokens event notify all \"TwoTokens Summer Meetup\"",
+      "schedule": "0 18 24 7 *",
+      "event_id": 1,
+      "task_type": "pre_event",
+      "description": "Send final reminder 1 day before event",
+      "created": "2025-07-10T10:42:43.542837"
+    },
+    {
+      "name": "TwoTokens Summer Meetup_post_event_update",
+      "command": "./twotokens event complete \"TwoTokens Summer Meetup\"",
+      "schedule": "0 18 26 7 *",
+      "event_id": 1,
+      "task_type": "post_event",
+      "description": "Update event status and create summary",
+      "created": "2025-07-10T10:42:43.542840"
+    }
+  ],
+  "settings": {
+    "timezone": "local",
+    "email_notifications": false,
+    "log_retention_days": 30
+  },
+  "events": [
+    {
+      "id": 1,
+      "name": "TwoTokens Summer Meetup",
+      "date": "2025-07-25T18:00:00",
+      "sponsor": "TechCorp",
+      "director": "Alice Johnson",
+      "team": [
+        "Bob Smith",
+        "Carol Wilson"
+      ],
+      "topic": "AI in Finance",
+      "description": "Quarterly meetup discussing AI applications",
+      "status": "scheduled",
+      "created": "2025-07-10T10:42:43.542775",
+      "tasks": [
+        "TwoTokens Summer Meetup_sponsor_reminder",
+        "TwoTokens Summer Meetup_team_preparation",
+        "TwoTokens Summer Meetup_final_reminder",
+        "TwoTokens Summer Meetup_post_event_update"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,337 @@
+#!/usr/bin/env python3
+"""
+TwoTokens Automation CLI
+Command line interface for managing TwoTokens.md file automation and scheduled tasks.
+"""
+
+import argparse
+import json
+import os
+import sys
+from datetime import datetime
+from pathlib import Path
+from subprocess import run, PIPE, CalledProcessError
+
+class TaskEventManager:
+    def __init__(self, config_file="config.json"):
+        self.config_file = config_file
+        self.config = self.load_config()
+        
+    def load_config(self):
+        """Load configuration from JSON file"""
+        if os.path.exists(self.config_file):
+            with open(self.config_file, 'r') as f:
+                return json.load(f)
+        return {
+            "twotokens_file": "TwoTokens.md",
+            "tasks": [],
+            "log_file": "twotokens.log"
+        }
+    
+    def save_config(self):
+        """Save configuration to JSON file"""
+        with open(self.config_file, 'w') as f:
+            json.dump(self.config, f, indent=2)
+    
+    def log_message(self, message):
+        """Log message with timestamp"""
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_entry = f"[{timestamp}] {message}"
+        print(log_entry)
+        
+        # Also write to log file
+        with open(self.config.get("log_file", "twotokens.log"), 'a') as f:
+            f.write(log_entry + "\n")
+    
+    def update_twotokens_file(self, content=None):
+        """Update TwoTokens.md file"""
+        twotokens_file = self.config.get("twotokens_file", "TwoTokens.md")
+        
+        if content is None:
+            # Generate default content with current timestamp
+            content = f"""# TwoTokens Automation
+
+Last updated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+
+## Status
+- Automation system is active
+- Event manager is running
+
+## Recent Activity
+- File updated by automation system
+"""
+        
+        with open(twotokens_file, 'w') as f:
+            f.write(content)
+        
+        self.log_message(f"Updated {twotokens_file}")
+    
+    def add_task(self, name, command, schedule):
+        """Add a new scheduled task"""
+        task = {
+            "name": name,
+            "command": command,
+            "schedule": schedule,
+            "created": datetime.now().isoformat()
+        }
+        self.config["tasks"].append(task)
+        self.save_config()
+        self.log_message(f"Added task: {name}")
+    
+    def list_tasks(self):
+        """List all scheduled tasks"""
+        if not self.config["tasks"]:
+            print("No scheduled tasks found.")
+            return
+        
+        print("Scheduled Tasks:")
+        for i, task in enumerate(self.config["tasks"], 1):
+            print(f"{i}. {task['name']}")
+            print(f"   Command: {task['command']}")
+            print(f"   Schedule: {task['schedule']}")
+            if 'created' in task:
+                print(f"   Created: {task['created']}")
+            if 'description' in task:
+                print(f"   Description: {task['description']}")
+            print()
+    
+    def remove_task(self, task_index):
+        """Remove a scheduled task by index"""
+        if 0 <= task_index < len(self.config["tasks"]):
+            removed_task = self.config["tasks"].pop(task_index)
+            self.save_config()
+            self.log_message(f"Removed task: {removed_task['name']}")
+            return True
+        return False
+    
+    def execute_task(self, task_name):
+        """Execute a specific task by name"""
+        for task in self.config["tasks"]:
+            if task["name"] == task_name:
+                try:
+                    result = run(task["command"], shell=True, capture_output=True, text=True)
+                    if result.returncode == 0:
+                        self.log_message(f"Task '{task_name}' executed successfully")
+                        if result.stdout:
+                            self.log_message(f"Output: {result.stdout.strip()}")
+                    else:
+                        self.log_message(f"Task '{task_name}' failed with return code {result.returncode}")
+                        if result.stderr:
+                            self.log_message(f"Error: {result.stderr.strip()}")
+                except Exception as e:
+                    self.log_message(f"Error executing task '{task_name}': {str(e)}")
+                return
+        
+        self.log_message(f"Task '{task_name}' not found")
+
+def main():
+    parser = argparse.ArgumentParser(description="TwoTokens Automation CLI")
+    parser.add_argument("--config", default="config.json", help="Configuration file path")
+    
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    
+    # Update command
+    update_parser = subparsers.add_parser("update", help="Update TwoTokens.md file")
+    update_parser.add_argument("--content", help="Custom content for the file")
+    
+    # Task management commands
+    task_parser = subparsers.add_parser("task", help="Task management")
+    task_subparsers = task_parser.add_subparsers(dest="task_action", help="Task actions")
+    
+    # Add task
+    add_parser = task_subparsers.add_parser("add", help="Add a new task")
+    add_parser.add_argument("name", help="Task name")
+    add_parser.add_argument("command", help="Command to execute")
+    add_parser.add_argument("schedule", help="Cron schedule (e.g., '0 9 * * *' for daily at 9 AM)")
+    
+    # List tasks
+    task_subparsers.add_parser("list", help="List all tasks")
+    
+    # Remove task
+    remove_parser = task_subparsers.add_parser("remove", help="Remove a task")
+    remove_parser.add_argument("index", type=int, help="Task index (from list command)")
+    
+    # Execute task
+    execute_parser = task_subparsers.add_parser("execute", help="Execute a task")
+    execute_parser.add_argument("name", help="Task name to execute")
+    
+    # Cron management commands
+    cron_parser = subparsers.add_parser("cron", help="Cron job management")
+    cron_subparsers = cron_parser.add_subparsers(dest="cron_action", help="Cron actions")
+    
+    cron_subparsers.add_parser("install", help="Install cron jobs for all tasks")
+    cron_subparsers.add_parser("remove", help="Remove all TwoTokens cron jobs")
+    cron_subparsers.add_parser("list", help="List current cron jobs")
+    
+    # Event management commands
+    event_parser = subparsers.add_parser("event", help="Event management")
+    event_subparsers = event_parser.add_subparsers(dest="event_action", help="Event actions")
+    
+    # Add event
+    add_event_parser = event_subparsers.add_parser("add", help="Add a new event")
+    add_event_parser.add_argument("name", help="Event name")
+    add_event_parser.add_argument("date", help="Event date (YYYY-MM-DD HH:MM)")
+    add_event_parser.add_argument("--sponsor", help="Event sponsor")
+    add_event_parser.add_argument("--director", help="Event director")
+    add_event_parser.add_argument("--team", nargs="+", help="Team members")
+    add_event_parser.add_argument("--topic", help="Event topic")
+    add_event_parser.add_argument("--description", help="Event description")
+    
+    # List events
+    list_events_parser = event_subparsers.add_parser("list", help="List events")
+    list_events_parser.add_argument("--status", help="Filter by status (scheduled, completed)")
+    
+    # Update event
+    update_event_parser = event_subparsers.add_parser("update", help="Update an event")
+    update_event_parser.add_argument("id", type=int, help="Event ID")
+    update_event_parser.add_argument("--name", help="Event name")
+    update_event_parser.add_argument("--date", help="Event date (YYYY-MM-DD HH:MM)")
+    update_event_parser.add_argument("--sponsor", help="Event sponsor")
+    update_event_parser.add_argument("--director", help="Event director")
+    update_event_parser.add_argument("--team", nargs="+", help="Team members")
+    update_event_parser.add_argument("--topic", help="Event topic")
+    update_event_parser.add_argument("--description", help="Event description")
+    update_event_parser.add_argument("--status", help="Event status")
+    
+    # Delete event
+    delete_event_parser = event_subparsers.add_parser("delete", help="Delete an event")
+    delete_event_parser.add_argument("id", type=int, help="Event ID")
+    
+    # Event notifications
+    notify_parser = event_subparsers.add_parser("notify", help="Send event notifications")
+    notify_parser.add_argument("target", choices=["sponsor", "team", "all"], help="Notification target")
+    notify_parser.add_argument("event_name", help="Event name")
+    
+    # Complete event
+    complete_parser = event_subparsers.add_parser("complete", help="Mark event as completed")
+    complete_parser.add_argument("event_name", help="Event name")
+    
+    # Upcoming events
+    event_subparsers.add_parser("upcoming", help="List upcoming events")
+    
+    args = parser.parse_args()
+    
+    if not args.command:
+        parser.print_help()
+        return
+    
+    task_event_manager = TaskEventManager(args.config)
+    
+    if args.command == "update":
+        task_event_manager.update_twotokens_file(args.content)
+    
+    elif args.command == "task":
+        if args.task_action == "add":
+            task_event_manager.add_task(args.name, args.command, args.schedule)
+        elif args.task_action == "list":
+            task_event_manager.list_tasks()
+        elif args.task_action == "remove":
+            if task_event_manager.remove_task(args.index - 1):
+                print(f"Task {args.index} removed successfully")
+            else:
+                print(f"Invalid task index: {args.index}")
+        elif args.task_action == "execute":
+            task_event_manager.execute_task(args.name)
+        else:
+            task_parser.print_help()
+    
+    elif args.command == "cron":
+        from cron_manager import CronManager
+        cron_manager = CronManager(task_event_manager)
+        
+        if args.cron_action == "install":
+            cron_manager.install_cron_jobs()
+        elif args.cron_action == "remove":
+            cron_manager.remove_cron_jobs()
+        elif args.cron_action == "list":
+            cron_manager.list_cron_jobs()
+        else:
+            cron_parser.print_help()
+    
+    elif args.command == "event":
+        from event_manager import EventManager
+        event_mgr = EventManager(args.config)
+        
+        if args.event_action == "add":
+            try:
+                event = event_mgr.create_event(
+                    name=args.name,
+                    date=args.date,
+                    sponsor=args.sponsor,
+                    director=args.director,
+                    team=args.team,
+                    topic=args.topic,
+                    description=args.description
+                )
+                print(f"✅ Event '{event['name']}' created successfully with ID {event['id']}")
+                print(f"📅 Scheduled for: {event['date']}")
+                print(f"🔄 Generated {len(event['tasks'])} automatic tasks")
+                
+                # Update main config with new tasks
+                task_event_manager.config = event_mgr.config
+                task_event_manager.save_config()
+                
+                # Optionally install cron jobs
+                print("\n💡 Run './twotokens cron install' to activate scheduled tasks")
+                
+            except ValueError as e:
+                print(f"❌ Error creating event: {e}")
+        
+        elif args.event_action == "list":
+            event_mgr.list_events(args.status)
+        
+        elif args.event_action == "update":
+            updates = {}
+            for field in ["name", "date", "sponsor", "director", "team", "topic", "description", "status"]:
+                value = getattr(args, field, None)
+                if value is not None:
+                    updates[field] = value
+            
+            if event_mgr.update_event(args.id, **updates):
+                print(f"✅ Event {args.id} updated successfully")
+                # Update main config
+                task_event_manager.config = event_mgr.config
+                task_event_manager.save_config()
+            else:
+                print(f"❌ Event {args.id} not found")
+        
+        elif args.event_action == "delete":
+            if event_mgr.delete_event(args.id):
+                print(f"✅ Event {args.id} deleted successfully")
+                # Update main config
+                task_event_manager.config = event_mgr.config
+                task_event_manager.save_config()
+            else:
+                print(f"❌ Event {args.id} not found")
+        
+        elif args.event_action == "notify":
+            if args.target == "sponsor":
+                event_mgr.notify_sponsor(args.event_name)
+            elif args.target == "team":
+                event_mgr.notify_team(args.event_name)
+            elif args.target == "all":
+                event_mgr.notify_all(args.event_name)
+        
+        elif args.event_action == "complete":
+            event_mgr.complete_event(args.event_name)
+            # Update main config
+            event_manager.config = event_mgr.config
+            event_manager.save_config()
+        
+        elif args.event_action == "upcoming":
+            upcoming = event_mgr.get_upcoming_events()
+            if upcoming:
+                print("📅 Upcoming Events (next 30 days):")
+                for event in upcoming:
+                    print(f"  • {event['name']} - {event['date']}")
+            else:
+                print("📅 No upcoming events in the next 30 days")
+        
+        else:
+            event_parser.print_help()
+    
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()

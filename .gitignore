@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.env
+venv/
+env/
+
+# Logs
+*.log
+twotokens.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup files
+*.backup.*
+TwoTokens.backup.*
+
+# Local configuration overrides
+config.local.json
+.claude/settings.local.json
+
+# Runtime files
+*.pid
