@@ -180,6 +180,17 @@ def main():
     # List events
     list_events_parser = event_subparsers.add_parser("list", help="List events")
     list_events_parser.add_argument("--status", help="Filter by status (scheduled, completed)")
+    list_events_parser.add_argument("--format", choices=["detailed", "table", "summary"], 
+                                   default="detailed", help="Output format")
+    list_events_parser.add_argument("--search", help="Search events by name, topic, sponsor, or director")
+    
+    # View event details
+    view_event_parser = event_subparsers.add_parser("view", help="View detailed event information")
+    view_event_parser.add_argument("id", type=int, help="Event ID to view")
+    
+    # Search events
+    search_events_parser = event_subparsers.add_parser("search", help="Search events")
+    search_events_parser.add_argument("term", help="Search term")
     
     # Update event
     update_event_parser = event_subparsers.add_parser("update", help="Update an event")
@@ -278,7 +289,15 @@ def main():
                 print(f"❌ Error creating event: {e}")
         
         elif args.event_action == "list":
-            event_mgr.list_events(args.status)
+            event_mgr.list_events(status_filter=args.status, 
+                                 format_type=args.format, 
+                                 search_term=args.search)
+        
+        elif args.event_action == "view":
+            event_mgr.view_event(args.id)
+        
+        elif args.event_action == "search":
+            event_mgr.search_events(args.term)
         
         elif args.event_action == "update":
             updates = {}

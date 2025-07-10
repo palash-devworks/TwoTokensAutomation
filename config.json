@@ -49,6 +49,42 @@
       "task_type": "post_event",
       "description": "Update event status and create summary",
       "created": "2025-07-10T10:42:43.542840"
+    },
+    {
+      "name": "Monthly Team Standup_sponsor_reminder",
+      "command": "./twotokens event notify sponsor \"Monthly Team Standup\"",
+      "schedule": "0 9 8 7 *",
+      "event_id": 2,
+      "task_type": "pre_event",
+      "description": "Send sponsor reminder 1 week before event",
+      "created": "2025-07-10T11:24:48.707120"
+    },
+    {
+      "name": "Monthly Team Standup_team_preparation",
+      "command": "./twotokens event notify team \"Monthly Team Standup\"",
+      "schedule": "0 9 12 7 *",
+      "event_id": 2,
+      "task_type": "pre_event",
+      "description": "Send team preparation notice 3 days before",
+      "created": "2025-07-10T11:24:48.707125"
+    },
+    {
+      "name": "Monthly Team Standup_final_reminder",
+      "command": "./twotokens event notify all \"Monthly Team Standup\"",
+      "schedule": "0 9 14 7 *",
+      "event_id": 2,
+      "task_type": "pre_event",
+      "description": "Send final reminder 1 day before event",
+      "created": "2025-07-10T11:24:48.707129"
+    },
+    {
+      "name": "Monthly Team Standup_post_event_update",
+      "command": "./twotokens event complete \"Monthly Team Standup\"",
+      "schedule": "0 9 16 7 *",
+      "event_id": 2,
+      "task_type": "post_event",
+      "description": "Update event status and create summary",
+      "created": "2025-07-10T11:24:48.707132"
     }
   ],
   "settings": {
@@ -76,6 +112,27 @@
         "TwoTokens Summer Meetup_team_preparation",
         "TwoTokens Summer Meetup_final_reminder",
         "TwoTokens Summer Meetup_post_event_update"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Monthly Team Standup",
+      "date": "2025-07-15T09:00:00",
+      "sponsor": null,
+      "director": "Team Lead",
+      "team": [
+        "Developer A",
+        "Developer B"
+      ],
+      "topic": "Sprint Planning",
+      "description": "Monthly planning and review meeting",
+      "status": "scheduled",
+      "created": "2025-07-10T11:24:48.707072",
+      "tasks": [
+        "Monthly Team Standup_sponsor_reminder",
+        "Monthly Team Standup_team_preparation",
+        "Monthly Team Standup_final_reminder",
+        "Monthly Team Standup_post_event_update"
       ]
     }
   ]

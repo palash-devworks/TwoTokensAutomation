@@ -171,41 +171,233 @@ class EventManager:
             event["tasks"].append(task["name"])
             self.config["tasks"].append(task)
     
-    def list_events(self, status_filter=None):
-        """List all events, optionally filtered by status"""
+    def list_events(self, status_filter=None, format_type="detailed", search_term=None):
+        """List all events with various formatting and filtering options"""
         events = self.config.get("events", [])
         
+        # Apply filters
         if status_filter:
             events = [e for e in events if e.get("status") == status_filter]
         
+        if search_term:
+            search_term = search_term.lower()
+            events = [e for e in events if 
+                     search_term in e.get("name", "").lower() or
+                     search_term in e.get("topic", "").lower() or
+                     search_term in e.get("sponsor", "").lower() or
+                     search_term in e.get("director", "").lower()]
+        
         if not events:
-            print("No events found.")
+            filter_desc = []
+            if status_filter:
+                filter_desc.append(f"status: {status_filter}")
+            if search_term:
+                filter_desc.append(f"search: '{search_term}'")
+            filter_text = f" (filtered by {', '.join(filter_desc)})" if filter_desc else ""
+            print(f"No events found{filter_text}.")
             return
         
-        print("Events:")
+        # Sort events by date
+        events.sort(key=lambda x: date_parse(x["date"]))
+        
+        if format_type == "table":
+            self._print_events_table(events)
+        elif format_type == "summary":
+            self._print_events_summary(events)
+        else:  # detailed
+            self._print_events_detailed(events)
+    
+    def _print_events_table(self, events):
+        """Print events in table format"""
+        print(f"{'ID':<4} {'Name':<25} {'Date':<17} {'Status':<12} {'Sponsor':<15}")
         print("-" * 80)
         
         for event in events:
             event_date = date_parse(event["date"])
-            print(f"ID: {event['id']} | {event['name']}")
-            print(f"Date: {event_date.strftime('%Y-%m-%d %H:%M')}")
-            print(f"Status: {event.get('status', 'unknown')}")
+            name = event["name"][:24] + "..." if len(event["name"]) > 24 else event["name"]
+            sponsor_text = event.get("sponsor") or ""
+            sponsor = (sponsor_text[:14] + "...") if len(sponsor_text) > 14 else sponsor_text
+            
+            print(f"{event['id']:<4} {name:<25} {event_date.strftime('%Y-%m-%d %H:%M'):<17} "
+                  f"{event.get('status', 'unknown'):<12} {sponsor:<15}")
+    
+    def _print_events_summary(self, events):
+        """Print events in summary format"""
+        print(f"Found {len(events)} event(s):\n")
+        
+        for event in events:
+            event_date = date_parse(event["date"])
+            status_icon = "✅" if event.get("status") == "completed" else "📅" if event.get("status") == "scheduled" else "❓"
+            
+            print(f"{status_icon} [{event['id']}] {event['name']}")
+            print(f"    📅 {event_date.strftime('%A, %B %d, %Y at %H:%M')}")
+            if event.get('topic'):
+                print(f"    📝 {event['topic']}")
+            if event.get('sponsor'):
+                print(f"    🏢 {event['sponsor']}")
+            print()
+    
+    def _print_events_detailed(self, events):
+        """Print events in detailed format"""
+        print("Events:")
+        print("=" * 80)
+        
+        for i, event in enumerate(events, 1):
+            event_date = date_parse(event["date"])
+            print(f"\n[{i}] Event ID: {event['id']} - {event['name']}")
+            print("-" * 50)
+            print(f"📅 Date & Time: {event_date.strftime('%A, %B %d, %Y at %H:%M')}")
+            print(f"📊 Status: {event.get('status', 'unknown').upper()}")
             
             if event.get('sponsor'):
-                print(f"Sponsor: {event['sponsor']}")
+                print(f"🏢 Sponsor: {event['sponsor']}")
             if event.get('director'):
-                print(f"Director: {event['director']}")
+                print(f"👨‍💼 Director: {event['director']}")
             if event.get('team'):
-                print(f"Team: {', '.join(event['team'])}")
+                print(f"👥 Team: {', '.join(event['team'])}")
             if event.get('topic'):
-                print(f"Topic: {event['topic']}")
+                print(f"📝 Topic: {event['topic']}")
             if event.get('description'):
-                print(f"Description: {event['description']}")
+                print(f"📋 Description: {event['description']}")
             
+            # Show task information
             if event.get('tasks'):
-                print(f"Associated Tasks: {len(event['tasks'])}")
+                print(f"⚙️  Associated Tasks: {len(event['tasks'])}")
+                task_types = self._get_event_task_types(event['id'])
+                if task_types:
+                    print(f"   └─ Types: {', '.join(task_types)}")
             
-            print("-" * 80)
+            # Show time until event
+            now = datetime.now()
+            time_diff = event_date - now
+            if event.get('status') == 'scheduled':
+                if time_diff.total_seconds() > 0:
+                    days = time_diff.days
+                    hours = time_diff.seconds // 3600
+                    if days > 0:
+                        print(f"⏰ Time until event: {days} day(s), {hours} hour(s)")
+                    else:
+                        print(f"⏰ Time until event: {hours} hour(s)")
+                else:
+                    print("⏰ Event has passed")
+            
+            print("=" * 80)
+    
+    def _get_event_task_types(self, event_id):
+        """Get task types for a specific event"""
+        task_types = set()
+        for task in self.config.get("tasks", []):
+            if task.get("event_id") == event_id:
+                task_type = task.get("task_type", "custom")
+                task_types.add(task_type)
+        return sorted(list(task_types))
+    
+    def view_event(self, event_id):
+        """View detailed information about a specific event"""
+        event = self.get_event(event_id)
+        if not event:
+            print(f"❌ Event with ID {event_id} not found.")
+            return
+        
+        event_date = date_parse(event["date"])
+        
+        print("=" * 80)
+        print(f"EVENT DETAILS - ID: {event['id']}")
+        print("=" * 80)
+        print(f"📝 Name: {event['name']}")
+        print(f"📅 Date & Time: {event_date.strftime('%A, %B %d, %Y at %H:%M')}")
+        print(f"📊 Status: {event.get('status', 'unknown').upper()}")
+        print()
+        
+        # Event details section
+        print("📋 EVENT INFORMATION")
+        print("-" * 40)
+        if event.get('sponsor'):
+            print(f"🏢 Sponsor: {event['sponsor']}")
+        if event.get('director'):
+            print(f"👨‍💼 Director: {event['director']}")
+        if event.get('team'):
+            print(f"👥 Team Members:")
+            for member in event['team']:
+                print(f"   • {member}")
+        if event.get('topic'):
+            print(f"📝 Topic: {event['topic']}")
+        if event.get('description'):
+            print(f"📄 Description: {event['description']}")
+        print()
+        
+        # Time information
+        print("⏰ TIMING INFORMATION")
+        print("-" * 40)
+        now = datetime.now()
+        time_diff = event_date - now
+        
+        if event.get('status') == 'scheduled':
+            if time_diff.total_seconds() > 0:
+                days = time_diff.days
+                hours = time_diff.seconds // 3600
+                minutes = (time_diff.seconds % 3600) // 60
+                print(f"⏳ Time until event: {days} day(s), {hours} hour(s), {minutes} minute(s)")
+            else:
+                print("⚠️  Event has passed but not marked as completed")
+        elif event.get('status') == 'completed':
+            time_since = now - event_date
+            days_since = time_since.days
+            print(f"✅ Event completed {days_since} day(s) ago")
+        
+        if event.get('created'):
+            created_date = date_parse(event['created'])
+            print(f"📅 Created: {created_date.strftime('%Y-%m-%d %H:%M')}")
+        print()
+        
+        # Tasks section
+        if event.get('tasks'):
+            print("⚙️  ASSOCIATED TASKS")
+            print("-" * 40)
+            event_tasks = self._get_event_tasks(event['id'])
+            
+            if event_tasks:
+                # Group tasks by type
+                pre_event_tasks = [t for t in event_tasks if t.get('task_type') == 'pre_event']
+                post_event_tasks = [t for t in event_tasks if t.get('task_type') == 'post_event']
+                
+                if pre_event_tasks:
+                    print("📋 Pre-Event Tasks:")
+                    for task in pre_event_tasks:
+                        status = "✅" if self._is_task_completed(task) else "⏳"
+                        print(f"   {status} {task['name']}")
+                        print(f"      📅 Schedule: {task['schedule']}")
+                        if task.get('description'):
+                            print(f"      📝 {task['description']}")
+                
+                if post_event_tasks:
+                    print("\n📋 Post-Event Tasks:")
+                    for task in post_event_tasks:
+                        status = "✅" if self._is_task_completed(task) else "⏳"
+                        print(f"   {status} {task['name']}")
+                        print(f"      📅 Schedule: {task['schedule']}")
+                        if task.get('description'):
+                            print(f"      📝 {task['description']}")
+            
+            print(f"\n📊 Total Tasks: {len(event.get('tasks', []))}")
+        else:
+            print("⚙️  No associated tasks")
+        
+        print("=" * 80)
+    
+    def _get_event_tasks(self, event_id):
+        """Get all tasks associated with an event"""
+        return [task for task in self.config.get("tasks", []) 
+                if task.get("event_id") == event_id]
+    
+    def _is_task_completed(self, task):
+        """Check if a task has been completed (placeholder for future implementation)"""
+        # This could be enhanced to check actual task execution status
+        return False
+    
+    def search_events(self, search_term):
+        """Search events by name, topic, sponsor, or director"""
+        self.list_events(search_term=search_term, format_type="summary")
     
     def get_event(self, event_id):
         """Get event by ID"""
