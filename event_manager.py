@@ -182,10 +182,10 @@ class EventManager:
         if search_term:
             search_term = search_term.lower()
             events = [e for e in events if 
-                     search_term in e.get("name", "").lower() or
-                     search_term in e.get("topic", "").lower() or
-                     search_term in e.get("sponsor", "").lower() or
-                     search_term in e.get("director", "").lower()]
+                     search_term in (e.get("name") or "").lower() or
+                     search_term in (e.get("topic") or "").lower() or
+                     search_term in (e.get("sponsor") or "").lower() or
+                     search_term in (e.get("director") or "").lower()]
         
         if not events:
             filter_desc = []
