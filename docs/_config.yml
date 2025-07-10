@@ -1,0 +1,63 @@
+title: TwoTokens Automation
+description: >-
+  Powerful command-line tool for automating event management, file updates, 
+  and task scheduling with intelligent cron job integration.
+
+baseurl: "/TwoTokensAutomation"
+url: "https://palash-devworks.github.io"
+
+# Theme
+theme: minima
+remote_theme: pages-themes/cayman@v0.2.0
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Site metadata
+author:
+  name: Palash DevWorks
+  email: palash@devworks.com
+
+# Social links
+github_username: palash-devworks
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:name/
+
+# Navigation
+navigation:
+  - title: Home
+    url: /
+  - title: Documentation
+    url: /docs/
+  - title: Installation
+    url: /docs/installation/
+  - title: Usage
+    url: /docs/usage/
+  - title: API Reference
+    url: /docs/api/
+  - title: Contributing
+    url: /docs/contributing/
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
