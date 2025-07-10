@@ -1,64 +1,201 @@
-# TwoTokens Automation
+# TwoTokens Automation 🚀
 
-A command-line tool for automating TwoTokens.md file management and scheduling tasks with cron jobs.
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+[![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey)](https://github.com/yourusername/TwoTokensAutomation)
 
-## Quick Start
+A powerful command-line tool for automating event management, file updates, and task scheduling with intelligent cron job integration. Perfect for managing meetups, conferences, and recurring automation tasks.
 
-1. **Setup**: Run the setup script to initialize the system
+## ✨ Features
+
+- 📅 **Comprehensive Event Management** - Create, track, and manage events with sponsors, directors, teams, and topics
+- 🔄 **Automatic Task Scheduling** - Generate pre-event and post-event tasks automatically
+- ⏰ **Intelligent Cron Integration** - Seamlessly schedule and manage cron jobs
+- 📝 **File Automation** - Automated TwoTokens.md file management with timestamps
+- 🔔 **Smart Notifications** - Automated reminders for sponsors, teams, and stakeholders
+- 📊 **Activity Logging** - Comprehensive logging with timestamps for auditing
+- ⚙️ **Configuration-Driven** - Flexible JSON-based configuration system
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.7+ 
+- Unix-like system (Linux, macOS)
+- Cron daemon (typically pre-installed)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/TwoTokensAutomation.git
+   cd TwoTokensAutomation
+   ```
+
+2. **Install dependencies**
+   ```bash
+   pip3 install python-dateutil
+   ```
+
+3. **Setup the system**
    ```bash
    ./setup.sh
    ```
 
-2. **Update TwoTokens.md**: Manually update the file
-   ```bash
-   ./twotokens update
-   ```
+## 📚 Usage
 
-3. **List scheduled tasks**: View all configured tasks
-   ```bash
-   ./twotokens task list
-   ```
+### Event Management
 
-## Commands
+**Create a new event with full details:**
+```bash
+./twotokens event add "Summer Tech Meetup" "2025-08-15 18:00" \
+  --sponsor "TechCorp" \
+  --director "Alice Johnson" \
+  --team "Bob Smith" "Carol Wilson" \
+  --topic "AI in Finance" \
+  --description "Quarterly meetup discussing AI applications"
+```
 
-### File Management
-- `./twotokens update` - Update TwoTokens.md file with current timestamp
-- `./twotokens update --content "Custom content"` - Update with custom content
+**List all events:**
+```bash
+./twotokens event list
+./twotokens event list --status scheduled  # Filter by status
+```
+
+**View upcoming events:**
+```bash
+./twotokens event upcoming
+```
+
+**Update event details:**
+```bash
+./twotokens event update 1 --sponsor "NewSponsor" --topic "Updated Topic"
+```
 
 ### Task Management
-- `./twotokens task add <name> <command> <schedule>` - Add new scheduled task
-- `./twotokens task list` - List all scheduled tasks  
-- `./twotokens task remove <index>` - Remove task by index
-- `./twotokens task execute <name>` - Execute specific task
+
+**Add custom scheduled task:**
+```bash
+./twotokens task add "daily-report" "python generate_report.py" "0 9 * * *"
+```
+
+**List all scheduled tasks:**
+```bash
+./twotokens task list
+```
+
+**Execute a task immediately:**
+```bash
+./twotokens task execute "daily-update"
+```
+
+### File Management
+
+**Update TwoTokens.md file:**
+```bash
+./twotokens update
+./twotokens update --content "Custom content here"
+```
 
 ### Cron Job Management
-- `./twotokens cron install` - Install/update all cron jobs
-- `./twotokens cron remove` - Remove all TwoTokens cron jobs
-- `./twotokens cron list` - List current cron jobs
 
-## Configuration
+**Install all cron jobs:**
+```bash
+./twotokens cron install
+```
 
-Edit `config.json` to customize:
-- `twotokens_file`: Path to the TwoTokens.md file
-- `log_file`: Path to log file
-- `tasks`: Array of scheduled tasks
+**List current cron jobs:**
+```bash
+./twotokens cron list
+```
 
-## Cron Schedule Format
+**Remove TwoTokens cron jobs:**
+```bash
+./twotokens cron remove
+```
+
+## ⚙️ Configuration
+
+The system uses `config.json` for configuration:
+
+```json
+{
+  "twotokens_file": "TwoTokens.md",
+  "log_file": "twotokens.log",
+  "tasks": [...],
+  "events": [...],
+  "settings": {
+    "timezone": "local",
+    "email_notifications": false,
+    "log_retention_days": 30
+  }
+}
+```
+
+## 🔔 Automatic Event Scheduling
+
+When you create an event, the system automatically generates:
+
+1. **Sponsor Reminder** - 7 days before event
+2. **Team Preparation Notice** - 3 days before event  
+3. **Final Reminder** - 1 day before event
+4. **Post-Event Update** - 1 day after event completion
+
+All tasks are automatically scheduled as cron jobs and can be customized via configuration templates.
+
+## 📅 Cron Schedule Format
 
 Use standard cron format: `minute hour day month weekday`
 
-Examples:
-- `0 9 * * *` - Daily at 9 AM
-- `0 */6 * * *` - Every 6 hours  
-- `0 0 * * 0` - Weekly on Sunday at midnight
-- `0 0 1 * *` - Monthly on the 1st at midnight
+| Schedule | Description |
+|----------|-------------|
+| `0 9 * * *` | Daily at 9 AM |
+| `0 */6 * * *` | Every 6 hours |
+| `0 0 * * 0` | Weekly on Sunday at midnight |
+| `0 0 1 * *` | Monthly on the 1st at midnight |
+| `*/15 * * * *` | Every 15 minutes |
 
-## Default Tasks
+## 🏗️ Architecture
 
-The system comes with two pre-configured tasks:
-1. **daily-update**: Updates TwoTokens.md daily at 9 AM
-2. **weekly-backup**: Creates weekly backup every Sunday at midnight
+The system consists of three main components:
 
-## Logs
+- **TaskEventManager** - Core task and file management
+- **EventManager** - Event lifecycle and scheduling
+- **CronManager** - Cron job installation and management
 
-All operations are logged to `twotokens.log` with timestamps for auditing and debugging.
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📋 Roadmap
+
+- [ ] Email/Slack notification integrations
+- [ ] Web dashboard interface
+- [ ] Event templates and recurring events
+- [ ] Integration with calendar systems (Google Calendar, Outlook)
+- [ ] Advanced reporting and analytics
+- [ ] Docker containerization
+- [ ] REST API for remote management
+
+## 🐛 Issues & Support
+
+Found a bug or have a feature request? Please [open an issue](https://github.com/yourusername/TwoTokensAutomation/issues).
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with ❤️ for the automation community
+- Inspired by the need for simple yet powerful event management
+- Thanks to all contributors and users
+
+---
+
+**Made with [Claude Code](https://claude.ai/code)** 🤖
